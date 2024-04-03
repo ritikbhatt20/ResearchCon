@@ -1,6 +1,16 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::entrypoint::ProgramResult;
+use anchor_lang::{
+    solana_program::program_error::ProgramError,
+};
 
-declare_id!("7AX5ZbemiAUG4WVdh12stGpsS6E4W8WeCbcDpLiyoWE4");
+mod error;
+
+use crate::{error::*};
+
+// This is your program's public key and it will update
+// automatically when you build the project.
+declare_id!("FdE5uyJNjYc1isahWvmcdWhAQmN9GuyMA936Po3B9Aho");
 
 #[program]
 mod blog_sol {
@@ -38,7 +48,7 @@ mod blog_sol {
         Ok(())
     }
 
-    pub fn create_post(ctx: Context<CreatePost>, title: String, content: String, timestamp: u64) -> ProgramResult {
+    pub fn create_post(ctx: Context<CreatePost>, title: String, content: String, timestamp: u64, links: Vec<String>) -> ProgramResult {
         let blog_account = &mut ctx.accounts.blog_account;
         let post_account = &mut ctx.accounts.post_account;
         let user_account = &mut ctx.accounts.user_account;
@@ -54,6 +64,7 @@ mod blog_sol {
         post_account.authority = authority.key();
         post_account.pre_post_key = blog_account.current_post_key;
         post_account.timestamp = timestamp;
+        post_account.links = links; // Set the list of links
 
         blog_account.current_post_key = post_account.key();
 
@@ -79,15 +90,6 @@ pub struct InitBlog<'info> {
 }
 
 #[derive(Accounts)]
-pub struct SignupUser<'info> {
-    #[account(init, payer = authority, space = 8 + 40 + 120  + 32)]
-    pub user_account: Account<'info, UserState>,
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    pub system_program: Program<'info, System>,
-}
-
-#[derive(Accounts)]
 pub struct CreatePost<'info> {
     #[account(init, payer = authority, space = 8 + 50 + 500 + 32 + 32 + 32 + 32 + 32 + 32)]
     pub post_account: Account<'info, PostState>,
@@ -98,6 +100,23 @@ pub struct CreatePost<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
     pub system_program: Program<'info, System>,
+}
+
+
+#[derive(Accounts)]
+pub struct SignupUser<'info> {
+    #[account(init, payer = authority, space = 8 + 40 + 120  + 32)]
+    pub user_account: Account<'info, UserState>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[event]
+pub struct PostEvent {
+    pub label: String,
+    pub post_id: Pubkey,
+    pub next_post_id: Option<Pubkey>,
 }
 
 #[account]
@@ -122,11 +141,5 @@ pub struct PostState {
     pub pre_post_key: Pubkey,
     pub authority: Pubkey,
     pub timestamp: u64,
-}
-
-#[event]
-pub struct PostEvent {
-    pub label: String,
-    pub post_id: Pubkey,
-    pub next_post_id: Option<Pubkey>,
+    pub links: Vec<String>, // Add a field for the list of links
 }
