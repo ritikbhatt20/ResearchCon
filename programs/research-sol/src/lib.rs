@@ -22,6 +22,21 @@ mod blog_sol {
 
         Ok(())
     }
+
+    pub fn signup_user(ctx: Context<SignupUser>, name: String, avatar: String) -> ProgramResult {
+        let user_account = &mut ctx.accounts.user_account;
+        let authority = &mut ctx.accounts.authority;
+
+        if name.is_empty() || avatar.is_empty() {
+            return Err(ProgramError::Custom(ResearchError::InvalidInput as u32));
+        }
+
+        user_account.name = name;
+        user_account.avatar = avatar;
+        user_account.authority = authority.key();
+
+        Ok(())
+    }
 }
 
 #[derive(Accounts)]
@@ -35,9 +50,25 @@ pub struct InitBlog<'info> {
     pub system_program: Program<'info, System>,
 }
 
+#[derive(Accounts)]
+pub struct SignupUser<'info> {
+    #[account(init, payer = authority, space = 8 + 40 + 120  + 32)]
+    pub user_account: Account<'info, UserState>,
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
 #[account]
 pub struct BlogState {
     pub current_post_key: Pubkey,
     pub authority: Pubkey,
     pub initialized: bool,
+}
+
+#[account]
+pub struct UserState {
+    pub name: String,
+    pub avatar: String,
+    pub authority: Pubkey,
 }
