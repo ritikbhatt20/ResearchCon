@@ -48,7 +48,7 @@ mod blog_sol {
         Ok(())
     }
 
-    pub fn create_post(ctx: Context<CreatePost>, title: String, content: String, timestamp: u64, links: Vec<String>) -> ProgramResult {
+    pub fn create_post(ctx: Context<CreatePost>, title: String, content: String, timestamp: u64, links: Option<Vec<String>>) -> ProgramResult {
         let blog_account = &mut ctx.accounts.blog_account;
         let post_account = &mut ctx.accounts.post_account;
         let user_account = &mut ctx.accounts.user_account;
@@ -141,5 +141,5 @@ pub struct PostState {
     pub pre_post_key: Pubkey,
     pub authority: Pubkey,
     pub timestamp: u64,
-    pub links: Vec<String>, // Add a field for the list of links
+    pub links: Option<Vec<String>>, // Use Option<Vec<String>> for nullable array of links
 }
