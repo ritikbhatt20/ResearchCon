@@ -68,6 +68,8 @@ mod blog_sol {
 
         blog_account.current_post_key = post_account.key();
 
+        user_account.num_posts += 1;
+
         emit!(PostEvent {
             label: "CREATE".to_string(),
             post_id: post_account.key(),
@@ -131,6 +133,7 @@ pub struct UserState {
     pub name: String,
     pub avatar: String,
     pub authority: Pubkey,
+    pub num_posts: u64, 
 }
 
 #[account]
@@ -141,5 +144,5 @@ pub struct PostState {
     pub pre_post_key: Pubkey,
     pub authority: Pubkey,
     pub timestamp: u64,
-    pub links: Option<Vec<String>>, // Use Option<Vec<String>> for nullable array of links
+    pub links: Option<Vec<String>>, 
 }
